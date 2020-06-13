@@ -1,3 +1,3 @@
-# first
-西瓜书 Information gain
+# Information_gain
+西瓜书 
 Practice of Information gain
