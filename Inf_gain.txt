@@ -1,0 +1,79 @@
+# 2020-06-11 Anthony whoareyouli@126.com
+# Test for Information gain
+import pandas as pd
+import numpy as np
+
+# Generate a dataset
+watermelon_data_set = pd.DataFrame({'触感':['硬滑','硬滑','硬滑','硬滑','硬滑','软粘','软粘','硬滑','硬滑','软粘','硬滑','软粘','硬滑','硬滑','软粘','硬滑','硬滑'],
+                     '密度':[0.676,0.774,0.634,0.608,0.556,0.403,0.481,0.437,0.666,0.243,0.245,0.343,0.639,0.657,0.360,0.593,0.719],
+                     '好瓜':['是','是','是','是','是','是','是','是','否','否','否','否','否','否','否','否','否']})
+length = watermelon_data_set.shape[0]
+
+# Find The set of partition points
+# ta: The set of partition points
+# da: Sort by attribute a
+
+ta = []
+da = watermelon_data_set.sort_values(by=['密度'],ignore_index=True)
+
+for i in range(0, length - 1):
+    ta.append('%.3f' % ((da.at[i,'密度'] + da.at[i+1,'密度']) / 2))
+
+for density in ta:
+    print(density, end=' ')
+	
+# Calculate Ent
+# p1: Proportion of the first category
+# p2: Proportion of the second category
+
+def calculate_ent(data_set):
+    
+    positive = 0
+    negative = 0
+    
+    for i in range(0,data_set.shape[0]):
+        if data_set.at[i,'好瓜'] == '是':
+            positive += 1
+        elif data_set.at[i,'好瓜'] == '否':
+            negative += 1
+    length_data_set = data_set.shape[0]        
+    p1 = positive / length_data_set
+    p2 = negative / length_data_set
+    
+    if p1 != 0 and p2 != 0:
+        ent = - (p1 * np.log2(p1) + p2 * np.log2(p2))
+    elif p1 != 0:
+        ent = - (p1 * np.log2(p1))
+    else:
+        ent = - (p2 * np.log2(p2))
+        
+    return ent
+	
+# Used to store information gain
+# entd: watermelon_data_set information entropy
+
+select_gain = []
+entd = calculate_ent(watermelon_data_set)
+
+for i in range(0,len(ta)):
+    dt_lambda_neg = pd.DataFrame({'触感':[],'密度':[],'好瓜':[]})
+    dt_lambda_pos = pd.DataFrame({'触感':[],'密度':[],'好瓜':[]})
+    sum_ent = 0
+    t = float(ta[i])
+    
+    for k in range(0,length):
+        if da.at[k,'密度'] <= t:
+            dt_lambda_neg = dt_lambda_neg.append(da.iloc[k],ignore_index=True)
+        else:
+            dt_lambda_pos = dt_lambda_pos.append(da.iloc[k],ignore_index=True)
+    
+    sum_ent = (dt_lambda_neg.shape[0] / length) * calculate_ent(dt_lambda_neg) + ((dt_lambda_pos.shape[0] / length) \
+              * calculate_ent(dt_lambda_pos))
+    culculate_gain = entd - sum_ent
+    select_gain.append(culculate_gain)
+
+max_select = max(select_gain)
+index_select = select_gain.index(max_select)
+print('ta:%.3f' % float(ta[index_select]))
+print('max_select:%.3f' %(max_select))    
+
